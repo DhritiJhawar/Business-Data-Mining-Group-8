@@ -54,7 +54,7 @@ colors = ['lightblue', 'yellow']  # Custom colors
 plt.figure(figsize=(6, 6))
 plt.pie(conversion_counts, labels=labels, colors=colors, autopct='%1.1f%%', startangle=90)
 plt.title('Conversion Distribution')
-plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+plt.axis('equal') 
 plt.show()
 
 #age bins
