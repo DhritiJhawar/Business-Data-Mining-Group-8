@@ -17,7 +17,6 @@ from imblearn.under_sampling import RandomUnderSampler
 
 #load dataset
 data=pd.read_csv('digital_marketing_campaign_dataset.csv')
-
 df=pd.read_csv('digital_marketing_campaign_dataset.csv')
 
 #overview of dataset
