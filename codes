@@ -1,3 +1,4 @@
+#import necessary libraries
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -14,27 +15,29 @@ from sklearn.preprocessing import LabelEncoder
 from imblearn.over_sampling import RandomOverSampler
 from imblearn.under_sampling import RandomUnderSampler
 
+#load dataset
 data=pd.read_csv('digital_marketing_campaign_dataset.csv')
 
 df=pd.read_csv('digital_marketing_campaign_dataset.csv')
 
+#overview of dataset
 print(df.head())
 print(df.info())
 print(df.describe())
 
-# Check for missing values in each column
+#check for missing values 
 print(df.isnull().sum())
 
-# Explore unique values in categorical columns
+#check for unique values in categorical columns
 for column in df.columns:
   if df[column].dtype == 'object':
     print(f"\nUnique values in '{column}': {df[column].unique()}")
 
-# Drop irrelevant columns
+#drop irrelevant columns
 df = df.drop(['CustomerID','AdvertisingPlatform','AdvertisingTool','ConversionRate'], axis=1)
 data = data.drop(['CustomerID','AdvertisingPlatform','AdvertisingTool'], axis=1)
 
-# Display the updated Data
+#display the updated data
 print(df.head())
 print(data.head())
 
@@ -43,85 +46,64 @@ print(data.head())
 from wolta.data_tools import unique_amounts
 unique_amounts(df)
 
-#####VISUALIZE TARGET VARIABLE
+#####VISUALIZATION
+#target variable
 conversion_counts = data['Conversion'].value_counts()
-
-# Define labels and custom colors
 labels = ['No Conversion', 'Conversion']
-colors = ['lightblue', 'yellow']  # Custom colors
-
-# Create the pie chart
+colors = ['lightblue', 'yellow']  #custom colours
 plt.figure(figsize=(6, 6))
 plt.pie(conversion_counts, labels=labels, colors=colors, autopct='%1.1f%%', startangle=90)
 plt.title('Conversion Distribution')
 plt.axis('equal') 
 plt.show()
 
-#age bins
+#age
 age_bins = [18, 25, 35, 45, 55, 65, np.inf]
-age_labels = ['18-24', '25-34', '35-44', '45-54', '55-64', '65+']
-
-#customize colors
+age_labels = ['18-24', '25-34', '35-44', '45-54', '55-64', '65+'] #create age ranges
 colors = ['lightblue', 'lightgreen', 'lightcoral', 'lightsalmon', 'lightgrey', 'yellow']
+df['Age_Group'] = pd.cut(df['Age'], bins=age_bins, labels=age_labels, right=False) #create new age group column 
 
-#create new column
-df['Age_Group'] = pd.cut(df['Age'], bins=age_bins, labels=age_labels, right=False)
-
-####gender and age
+#gender and age
 fig, axes = plt.subplots(1, 2, figsize=(12, 6))
 colors_gender = ['skyblue', 'lightpink']
 gender_counts = df['Gender'].value_counts()
 axes[0].pie(gender_counts, labels=gender_counts.index, autopct='%1.1f%%', startangle=90, colors=colors_gender)
 axes[0].set_title('Distribution of Gender')
-
-#Pie chart for Age_Group
 colors_age_group = ['lightgreen', 'lightpink', 'lightsalmon',
                     'lightblue', 'lightgrey', 'yellow']
 age_group_counts = df['Age_Group'].value_counts()
 axes[1].pie(age_group_counts, labels=age_group_counts.index, autopct='%1.1f%%', startangle=90, colors=colors_age_group)
 axes[1].set_title('Distribution of Age Group')
-
 plt.show()
 
-# Convert 'Age_Group' to categorical 
+#convert age group to categorical variable
 df['Age_Group'] = pd.Categorical(df['Age_Group'], categories=age_labels, ordered=True)
 
-# Define custom colors for each gender
-gender_colors = {'Male': 'skyblue', 'Female': 'lightpink'}  
-
-# Create a FacetGrid
+gender_colors = {'Male': 'skyblue', 'Female': 'lightpink'}  #custom colour 
 g = sns.FacetGrid(df, col="Gender", hue="Gender", palette=gender_colors)
 g.map(plt.hist, "Age_Group", alpha=0.7)
-
 for ax in g.axes.flat:
     ax.set_xticks(ax.get_xticks())  # Get current tick positions
     ax.set_xticklabels(age_labels)  # Set custom labels
     ax.tick_params(axis='x', rotation=45)  # Rotate labels if needed
-
 plt.show()
 
-# Define income ranges and labels
+#income
 income_bins = [0, 25000, 50000, 75000, 100000, 125000, 150000, np.inf]
-income_labels = ['0-25k', '25k-50k', '50k-75k', '75k-100k', '100k-125k', '125k-150k','150k+']
-
-# Create a new column with income ranges
-df['Income_Group'] = pd.cut(df['Income'], bins=income_bins, labels=income_labels, include_lowest=True, right=False)
-
+income_labels = ['0-25k', '25k-50k', '50k-75k', '75k-100k', '100k-125k', '125k-150k','150k+'] #create income ranges
+df['Income_Group'] = pd.cut(df['Income'], bins=income_bins, labels=income_labels, include_lowest=True, right=False) #add new column for income bins
 custom_palette = {'0-25k':'lightcoral','25k-50k':'lightgreen',
                   '50k-75k':'lightblue','75k-100k':'lightsalmon',
                   '100k-125k':'yellow', '125k-150k':'lightpink','150k+':'lightgrey'}
-
-# Create the countplot with customized colors
 sns.countplot(x='Income_Group', data=df, palette=custom_palette)
 plt.title('Income Group Distribution')
 plt.xlabel('Income Group')
 plt.ylabel('Count')
 plt.show()
 
+#gender-wise income
 gender_income = df.groupby('Gender')['Income'].mean()
-colors = {'Male': 'skyblue', 'Female': 'lightpink'}
-
-# Create the bar chart
+colors = {'Male': 'skyblue', 'Female': 'lightpink'} #custom colours
 plt.bar(gender_income.index, gender_income.values, color=[colors[gender] for gender in gender_income.index])
 plt.xlabel('Gender')
 plt.ylabel('Average Income')
@@ -132,9 +114,7 @@ avg_spend = data.groupby(['CampaignChannel', 'CampaignType'])['AdSpend'].mean().
 custom_palette = {'Conversion': 'lightblue',
                   'Awareness': 'yellow',
                   'Retention': 'lightgreen',
-                  'Consideration':'lightpink'}
-
-# Create a bar chart 
+                  'Consideration':'lightpink'} #custom colours
 plt.figure(figsize=(12, 6))
 sns.barplot(x='CampaignChannel', y='AdSpend', hue='CampaignType', data=avg_spend, palette=custom_palette)
 plt.xlabel('Campaign Channel', fontsize=12)
@@ -145,17 +125,9 @@ plt.legend(title='Campaign Type', fontsize=10)
 plt.tight_layout()
 plt.show()
 
-age_conversion = df.groupby('Age_Group')['Conversion'].mean()
-print(age_conversion)
-age_bins = [18, 25, 35, 45, 55, 65, np.inf]
-age_labels = ['18-24', '25-34', '35-44', '45-54', '55-64', '65+']
-
-#create new column
-data['Age_Group'] = pd.cut(data['Age'], bins=age_bins, labels=age_labels, right=False)
+#age-wise average conversion rate
 age_conversion = data.groupby('Age_Group')['ConversionRate'].mean()
-
-colors = ['lightblue', 'lightgreen', 'lightcoral', 'lightsalmon', 'lightgrey', 'yellow']  
-
+colors = ['lightblue', 'lightgreen', 'lightcoral', 'lightsalmon', 'lightgrey', 'yellow']  #custom colours
 plt.figure(figsize=(10, 6))
 plt.barh(age_conversion.index, age_conversion.values, color=colors) 
 plt.title('Conversion Rate by Age Group')
@@ -163,7 +135,7 @@ plt.ylabel('Age Group')
 plt.xlabel('Conversion Rate')
 plt.show()
 
-# Creating subplots
+#creating subplots
 fig, axes = plt.subplots(3, 2, figsize=(15, 18))
 
 # Boxplot for AdSpend vs Conversion
@@ -193,9 +165,8 @@ plt.tight_layout()
 # Displaying the subplots
 plt.show()
 
-#Number of Previous Purchases
+#number of previous purchases
 purchase_counts = data['PreviousPurchases'].value_counts().sort_index()
-
 plt.figure(figsize=(10, 6))
 plt.bar(purchase_counts.index, purchase_counts.values)
 plt.title('Frequency of Previous Purchase Counts')
@@ -204,48 +175,32 @@ plt.ylabel('Number of Customers')
 plt.xticks(purchase_counts.index)  
 plt.show()
 
-#Average conversion rate by campaign type
+#average conversion rate by campaign type
 campaign_channel_conversion = data.groupby('CampaignChannel')['ConversionRate'].mean().reset_index()
-
-# Create the bar chart
-plt.figure(figsize=(8, 6))  # Adjust figure size as needed
+plt.figure(figsize=(8, 6))
 sns.barplot(x='CampaignChannel', y='ConversionRate', data=campaign_channel_conversion)
 plt.xlabel('Campaign Channel')
 plt.ylabel('Average Conversion Rate')
 plt.title('Conversion Rate by Campaign Channel')
-plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels for better readability
+plt.xticks(rotation=45, ha='right')
 plt.tight_layout()
 plt.show()
 
-#Convert conversion to categorical
+#convert "Conversion" to categorical 
 columns_to_convert = ['Conversion'] 
-
 for column in columns_to_convert:
     data['Conversion'] = data['Conversion'].astype('category')
-
-# Display the updated data types
 print(data.dtypes)
 
-from sklearn.preprocessing import StandardScaler
-
-# Select numerical features 
-numerical_features = df.select_dtypes(include=['number']).columns
-
-# Create a StandardScaler object
-scaler = StandardScaler()
-
-# Fit and transform the scaler on the numerical features
-df[numerical_features] = scaler.fit_transform(df[numerical_features])
-
+#correlation matrix and heatmap visualization
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
-#custom color gradient
-colors = ['pink', 'lightyellow', 'lightblue']  
+colors = ['pink', 'lightyellow', 'lightblue']  #custom colour
 cmap = mcolors.LinearSegmentedColormap.from_list("mycmap", colors)
 
-correlation_matrix = numerical_features.corr()
+correlation_matrix = numerical_features.corr() #select only numerical features
 
 # PLot heatmap
 plt.figure(figsize=(12, 10))
@@ -279,8 +234,7 @@ def cramers_v(confusion_matrix):
     kcorr = k - ((k - 1)**2) / (n - 1)
     return np.sqrt(phi2corr / min((kcorr - 1), (rcorr - 1)))
 
-# Select your categorical columns
-categorical_cols = ['Gender','CampaignChannel', 'CampaignType']  # Replace with your actual columns
+categorical_cols = ['Gender','CampaignChannel', 'CampaignType']  #select categorical columns
 
 # Calculate Cramér's V for each pair of categorical columns
 cramers_v_matrix = pd.DataFrame(index=categorical_cols, columns=categorical_cols)
@@ -291,10 +245,10 @@ for col1 in categorical_cols:
         cramers_v_matrix.loc[col1, col2] = cramers_v(confusion_matrix)
 
 print(cramers_v_matrix)
+#plot heatmap
 import matplotlib.colors as mcolors
 plt.figure(figsize=(10, 8))  
-# Define your custom color gradient
-colors = ['pink', 'lightyellow', 'lightblue']  
+colors = ['pink', 'lightyellow', 'lightblue']  #custom colours
 cmap = mcolors.LinearSegmentedColormap.from_list("mycmap", colors)
 sns.heatmap(cramers_v_matrix.astype(float), annot=True, cmap=cmap, fmt=".2f", linewidths=.5)
 plt.title("Cramér's V Correlation Matrix for Categorical Variables")
@@ -304,42 +258,37 @@ plt.show()
 
 #Scale numerical variables
 from sklearn.preprocessing import StandardScaler
-
-# Select numerical features 
-numerical_features = df.select_dtypes(include=['number']).columns
+numerical_features = df.select_dtypes(include=['number']).columns #select numerical variables
 scaler = StandardScaler()
 df[numerical_features] = scaler.fit_transform(df[numerical_features])
 print(df.head())
 
 #Encode categorical variables
 from sklearn.preprocessing import LabelEncoder
-
-# Specify the categorical columns to encode
-columns_to_encode = ['Gender','CampaignChannel','CampaignType'] 
-
-# Create a LabelEncoder object
+columns_to_encode = ['Gender','CampaignChannel','CampaignType'] #select the categorical columns
 label_encoder = LabelEncoder()
 for column in columns_to_encode:
     df[column] = label_encoder.fit_transform(df[column])
 print(df.head())
 
-
-from imblearn.over_sampling import RandomOverSampler
+###MODELSSSS
 from sklearn.model_selection import train_test_split
 X = data.drop('Conversion', axis=1)
 y = data['Conversion']
 
-###Oversampling
+#Oversampling
+from imblearn.over_sampling import RandomOverSampler
 oversampler = RandomOverSampler(random_state=42)
 
-# Apply oversampling
 X_resampled, y_resampled = oversampler.fit_resample(X, y)
 print(y_resampled.value_counts())
+
 # Split the oversampled data
 X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
 
 #XGBoost classifier
 modelxgb = xgb.XGBClassifier(random_state=42)
+#train the model
 modelxgb.fit(X_train, y_train)
 # Make predictions on the testing set
 y_predxgb = modelxgb.predict(X_test)
@@ -347,8 +296,6 @@ y_predxgb = modelxgb.predict(X_test)
 # Evaluate the model
 accuracyxgb = accuracy_score(y_test, y_predxgb)
 print("Accuracy:",accuracyxgb)
-
-# Print the confusion matrix
 cmxgb = confusion_matrix(y_test, y_predxgb)
 print("Confusion Matrix:\n", cmxgb)
 reportxgb = classification_report(y_test, y_predxgb)
@@ -357,9 +304,7 @@ print(reportxgb)
 #ROC Curve for cpomparison
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, roc_auc_score
-
-# Calculate ROC curve
-tpr, fpr, thresholds = roc_curve(y_test, y_predxgb)
+tpr, fpr, thresholds = roc_curve(y_test, y_predxgb) #calculate the ROC Curve
 
 # Calculate AUC (Area Under the Curve)
 roc_auc = roc_auc_score(y_test, y_predxgb)
@@ -378,47 +323,37 @@ plt.show()
 
 #Gaussian Naive Bayes classifier
 modelnb = GaussianNB()
-
 # Train the model
 modelnb.fit(X_train, y_train)
-
 # Make predictions on the testing set
 y_prednb = modelnb.predict(X_test)
 
 # Evaluate the model
 accuracynb = accuracy_score(y_test, y_prednb)
 print("Accuracy:", accuracynb)
-
-reportnb = classification_report(y_test, y_prednb)
-print(reportnb)
-# Print the confusion matrix
 cmnb = confusion_matrix(y_test, y_prednb)
 print("Confusion Matrix:\n", cmnb)
+reportnb = classification_report(y_test, y_prednb)
+print(reportnb)
 
-####SVM
+#SVM
 
 from sklearn.svm import SVC
-# Create an SVM classifier
 modelsvm = SVC(kernel='linear')
-
 # Train the model
 modelsvm.fit(X_train, y_train)
-
 # Make predictions on the testing set
 y_predsvm = modelsvm.predict(X_test)
 
 # Evaluate the model
 accuracysvm = accuracy_score(y_test, y_predsvm)
 print("Accuracy:", accuracysvm)
-
-# Print the confusion matrix
 cmsvm = confusion_matrix(y_test, y_predsvm)
 print("Confusion Matrix:\n", cmsvm)
-
 reportsvm = classification_report(y_test, y_predsvm)
 print(reportsvm)
 
-#k-nn
+#k Nearest Neighbour
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import cross_val_score
@@ -450,116 +385,84 @@ knn = KNeighborsClassifier(n_neighbors=3) 3the best k value is 1 but we can't ta
 
 # Train the model
 knn.fit(X_train, y_train)
-
 # Make predictions on the testing set
 y_predknn = knn.predict(X_test)
 
 # Evaluate the model
 accuracyknn = accuracy_score(y_test, y_predknn)
 print("Accuracy:", accuracyknn)
-
-# Print the confusion matrix
 cmknn = confusion_matrix(y_test, y_predknn)
 print("Confusion Matrix:\n", cmknn)
-
 reportknn = classification_report(y_test, y_predknn)
 print(reportknn)
 
 #Logistic Regression model
 modellg = LogisticRegression()
-
-# Train the model on the training data
+# Train the model 
 modellg.fit(X_train, y_train)
-
 # Make predictions on the testing data
 y_predlg = modellg.predict(X_test)
 
 # Evaluate the model's performance
 accuracylg = accuracy_score(y_test, y_predlg)
 print("Accuracy:", accuracylg)
-
-# Print the confusion matrix
 cmlg = confusion_matrix(y_test, y_predlg)
 print("Confusion Matrix:\n", cmlg)
-
 reportlg = classification_report(y_test, y_predlg)
 print(reportlg)
 
-#####Decision Tree Classifier
+#Decision Tree Classifier
 from sklearn.tree import DecisionTreeClassifier
 dtmodel = DecisionTreeClassifier(max_depth=5)
-
-
-# Train the model on the training data
+# Train the model 
 dtmodel.fit(X_train, y_train)
-
 # Make predictions on the testing data
 y_preddt = dtmodel.predict(X_test)
 
 # Evaluate the model's performance
 accuracydt = accuracy_score(y_test, y_preddt)
 print("Accuracy:", accuracydt)
-
-# Print the confusion matrix
 cmdt = confusion_matrix(y_test, y_preddt)
 print("Confusion Matrix:\n", cmdt)
-
 reportdt = classification_report(y_test, y_preddt)
 print(reportdt)
 
-###Random Forest
-
+#Random Forest
 from sklearn.ensemble import RandomForestClassifier
-
-# Create a Random Forest Classifier
 rf = RandomForestClassifier(n_estimators=100, random_state=42)
-
-# Train the model on the training data
+# Train the model 
 rf.fit(X_train, y_train)
-
 # Make predictions on the testing data
 y_predrf = rf.predict(X_test)
 
 # Evaluate the model's performance
-
 accuracyrf = accuracy_score(y_test, y_predrf)
 print("Accuracy:", accuracyrf)
-
-# Print the confusion matrix
 cmrf = confusion_matrix(y_test, y_predrf)
 print("Confusion Matrix:\n", cmrf)
-  
 reportrf = classification_report(y_test, y_predrf)
 print(reportrf)
 
+#plot feature importance
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Get feature importance
-importance = rf.feature_importances_
-
-# Create a DataFrame
+importance = rf.feature_importances_ #get feature importance
 feature_importance_df = pd.DataFrame({'Feature': X.columns, 'Importance': importance})
-
 feature_importance_df = feature_importance_df.sort_values(by='Importance')
-
-# Print or display the DataFrame
 print(feature_importance_df)
 
-# Optional: Visualize with a bar plot
+# visualize feature importance
 plt.figure(figsize=(10, 6))
-plt.barh(feature_importance_df['Feature'], feature_importance_df['Importance'],color='skyblue')  # Change color here)
+plt.barh(feature_importance_df['Feature'], feature_importance_df['Importance'],color='skyblue') 
 plt.xlabel('Importance')
 plt.ylabel('Feature')
 plt.title('Feature Importance in Random Forest')
 plt.show()
 
-# Calculate ROC curve
+# Calculate ROC curve for comparison
 tpr, fpr, thresholds = roc_curve(y_test, y_predrf)
-
-# Calculate AUC (Area Under the Curve)
 roc_auc = roc_auc_score(y_test, y_predrf)
-
 # Plot ROC curve
 plt.figure(figsize=(8, 6))
 plt.plot(tpr, fpr, color='skyblue', lw=2, label=f'ROC curve (AUC = {roc_auc:.2f})')
@@ -573,13 +476,13 @@ plt.legend(loc="lower right")
 plt.show()
 
 #Lift Chart 
-  import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
-# Function to calculate and plot lift chart
+#function to calculate and plot lift chart
 def plot_lift_chart(y_true, y_pred_prob, model_name):
     # Reshape y_pred_prob if it's 2-dimensional
     if y_pred_prob.ndim == 2 and y_pred_prob.shape[1] == 1:
@@ -588,7 +491,7 @@ def plot_lift_chart(y_true, y_pred_prob, model_name):
     # Create a DataFrame to store true labels and predicted probabilities
     df = pd.DataFrame({'true': y_true, 'pred_prob': y_pred_prob})
 
-    # Sort the DataFrame by predicted probabilities in descending order
+    # Sort the DataFrame 
     df = df.sort_values(by=['pred_prob'], ascending=False)
 
     # Calculate cumulative true positive rate (TPR) and cumulative population
@@ -621,41 +524,32 @@ ax.legend(loc='upper right')
 ax.grid(True)
 plt.show()
 
-##Underdsampling
+#Underdsampling
 undersampler = RandomUnderSampler(random_state=42)
-# Apply undersampling
 X_resampled, y_resampled = undersampler.fit_resample(X, y)
 print(y_resampled.value_counts())
-
+#split the data 
 from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
 
-####XGBoost
+#XGBoost
 import xgboost as xgb
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-
-# Create an XGBoost classifier
 modelxgb = xgb.XGBClassifier()
-
 # Train the model
 modelxgb.fit(X_train, y_train)
-
 # Make predictions on the testing set
 y_predxgb = modelxgb.predict(X_test)
 
 # Evaluate the model
 accuracyxgb = accuracy_score(y_test, y_predxgb)
 print("Accuracy:", accuracyxgb)
-
-# Print the confusion matrix
 cmxgb = confusion_matrix(y_test, y_predxgb)
 print("Confusion Matrix:\n", cmxgb)
-
-# Print the classification report
 reportxgb = classification_report(y_test, y_predxgb)
 print(reportxgb)
 
-#k-nn
+#k Nearest Neighbours
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import cross_val_score
@@ -685,48 +579,35 @@ plt.show()
 rom sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
-# Create a KNN classifier with k=5 (you can adjust this)
 knn = KNeighborsClassifier(n_neighbors=best_k)
-
 # Train the model
 knn.fit(X_train, y_train)
-
 # Make predictions on the testing set
 y_pred_knn = knn.predict(X_test)
 
 # Evaluate the model
 accuracy_knn = accuracy_score(y_test, y_pred_knn)
 print("Accuracy:", accuracy_knn)
-
-# Print the confusion matrix
 cm_knn = confusion_matrix(y_test, y_pred_knn)
 print("Confusion Matrix:\n", cm_knn)
-
-# Print the classification report
 report_knn = classification_report(y_test, y_pred_knn)
 print(report_knn)
 
-# SVM classifier 
+# SVM  
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
 svm = SVC(kernel='linear', random_state=42)
-
 # Train the model
 svm.fit(X_train, y_train)
-
 # Make predictions on the testing set
 y_pred_svm = svm.predict(X_test)
 
 # Evaluate the model
 accuracy_svm = accuracy_score(y_test, y_pred_svm)
 print("Accuracy:", accuracy_svm)
-
-# Print the confusion matrix
 cm_svm = confusion_matrix(y_test, y_pred_svm)
 print("Confusion Matrix:\n", cm_svm)
-
-# Print the classification report
 report_svm = classification_report(y_test, y_pred_svm)
 print(report_svm)
 
@@ -735,102 +616,77 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
 nb_model = GaussianNB()
-
 # Train the model
 nb_model.fit(X_train, y_train)
-
 # Make predictions on the testing set
 y_pred_nb = nb_model.predict(X_test)
 
 # Evaluate the model
 accuracy_nb = accuracy_score(y_test, y_pred_nb)
 print("Accuracy:", accuracy_nb)
-
-# Print the confusion matrix
 cm_nb = confusion_matrix(y_test, y_pred_nb)
 print("Confusion Matrix:\n", cm_nb)
-
-# Print the classification report
 report_nb = classification_report(y_test, y_pred_nb)
 print(report_nb)
 
 #Logistic Regression model
 modellg = LogisticRegression()
-
-# Train the model on the training data
+# Train the model
 modellg.fit(X_train, y_train)
-
 # Make predictions on the testing data
 y_predlg = modellg.predict(X_test)
 
-# Evaluate the model's performance
+# Evaluate the model
 accuracylg = accuracy_score(y_test, y_predlg)
 print("Accuracy:", accuracylg)
-
-# Print the confusion matrix
 cmlg = confusion_matrix(y_test, y_predlg)
 print("Confusion Matrix:\n", cmlg)
-
 reportlg = classification_report(y_test, y_predlg)
 print(reportlg)
 
-#####Decision Tree Classifier
+#Decision Tree Classifier
 from sklearn.tree import DecisionTreeClassifier
 dtmodel = DecisionTreeClassifier(max_depth=5)
-
-
-# Train the model on the training data
+# Train the model 
 dtmodel.fit(X_train, y_train)
-
 # Make predictions on the testing data
 y_preddt = dtmodel.predict(X_test)
 
-# Evaluate the model's performance
+# Evaluate the model
 accuracydt = accuracy_score(y_test, y_preddt)
 print("Accuracy:", accuracydt)
-
-# Print the confusion matrix
 cmdt = confusion_matrix(y_test, y_preddt)
 print("Confusion Matrix:\n", cmdt)
-
 reportdt = classification_report(y_test, y_preddt)
 print(reportdt)
 
-###Random Forest
+#Random Forest
 
 from sklearn.ensemble import RandomForestClassifier
 rf = RandomForestClassifier(n_estimators=100, random_state=42)
-
-# Train the model on the training data
+# Train the model 
 rf.fit(X_train, y_train)
-
 # Make predictions on the testing data
 y_predrf = rf.predict(X_test)
 
-# Evaluate the model's performance
-
+# Evaluate the model
 accuracyrf = accuracy_score(y_test, y_predrf)
 print("Accuracy:", accuracyrf)
-
-# Print the confusion matrix
 cmrf = confusion_matrix(y_test, y_predrf)
 print("Confusion Matrix:\n", cmrf)
-
 reportrf = classification_report(y_test, y_predrf)
 print(reportrf)
 
+#ANN
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 import pandas as pd
 
-
-# Convert categorical columns to numerical using one-hot encoding
-# Ensure all object and category dtypes are converted
+#use one hot encoding 
 X_train = pd.get_dummies(X_train, columns=X_train.select_dtypes(include=['object', 'category']).columns)
 X_test = pd.get_dummies(X_test, columns=X_test.select_dtypes(include=['object', 'category']).columns)
 
-# Double-check if any 'category' columns remain and convert them to numerical
 for col in X_train.select_dtypes(include=['category']).columns:
     X_train[col] = X_train[col].cat.codes  # Convert to numerical codes
 
@@ -842,7 +698,6 @@ if y_train.dtype in ['object', 'category']:
 
 if y_test.dtype in ['object', 'category']:
     y_test = pd.factorize(y_test)[0]  # Convert to numerical using factorize
-# ---Changes end here---
 
 # Create a Sequential model
 modelseq = Sequential()
@@ -852,26 +707,19 @@ modelseq.add(Dense(12,input_dim=X_train.shape[1], activation='relu'))  # Input l
 modelseq.add(Dense(8, activation='relu'))  # Hidden layer
 modelseq.add(Dense(1, activation='sigmoid'))  # Output layer
 
-
 # Compile the model
 modelseq.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-
 # Train the model
 modelseq.fit(X_train, y_train, epochs=10, batch_size=32)
-
-
 # Make predictions on the testing data
 y_predseq = modelseq.predict(X_test)
 y_predseq = (y_predseq > 0.5)  # Convert probabilities to binary predictions
 
-# Evaluate the model's performance
+# Evaluate the model
 accuracyseq = accuracy_score(y_test, y_predseq)
 print("Accuracy:", accuracyseq)
-
-# Print the confusion matrix
 cmseq = confusion_matrix(y_test, y_predseq)
 print("Confusion Matrix:\n", cmseq)
-
 reportseq = classification_report(y_test, y_predseq)
 print(reportseq)
 
@@ -884,7 +732,6 @@ from imblearn.combine import SMOTEENN
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
-# divide the data into X and y
 X = data.drop('Conversion', axis=1)
 y = data['Conversion']
 
@@ -892,37 +739,31 @@ y = data['Conversion']
 smote_enn = SMOTEENN(random_state=42)
 X_resampled, y_resampled = smote_enn.fit_resample(X, y)
 print(y_resampled.value_counts())
-  
 #split the data
 X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
 
-#XGBoost classifier
+#XGBoost 
 import xgboost as xgb
 xgb_model = xgb.XGBClassifier()
-
 # Train the model
 xgb_model.fit(X_train, y_train)
-
 # Make predictions
 y_pred_xgb = xgb_model.predict(X_test)
 
 # Evaluate the model
 accuracy_xgb = accuracy_score(y_test, y_pred_xgb)
 print("Accuracy:", accuracy_xgb)
-
 cm_xgb = confusion_matrix(y_test, y_pred_xgb)
 print("Confusion Matri:\n", cm_xgb)
-
 report_xgb = classification_report(y_test, y_pred_xgb)
 print("Classification Report (XGBoost):\n", report_xgb)
 
-###K-NN
+#k Nearest Neighnours
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import KNeighborsClassifier #Import KNeighborsClassifier
 
-# Define param_grid with the desired range for 'n_neighbors'
 param_grid = {'n_neighbors': range(1, 21)} #Define param_grid
 
 k_values = param_grid['n_neighbors']
@@ -932,28 +773,6 @@ for k in k_values:
     knn = KNeighborsClassifier(n_neighbors=k)
     scores = cross_val_score(knn, X_train, y_train, cv=5, scoring='accuracy')
     mean_scores.append(np.mean(scores))
-
-####SVM
-
-from sklearn.svm import SVC
-# Create an SVM classifier
-modelsvm = SVC(kernel='linear')
-
-# Train the model
-modelsvm.fit(X_train, y_train)
-
-# Make predictions on the testing set
-y_predsvm = modelsvm.predict(X_test)
-
-# Evaluate the model
-accuracysvm = accuracy_score(y_test, y_predsvm)
-print("Accuracy:", accuracysvm)
-reportsvm = classification_report(y_test, y_predsvm)
-print(f"Classification Report(svm):\n{reportsvm}")
-# Print the confusion matrix
-cmsvm = confusion_matrix(y_test, y_predsvm)
-print("Confusion Matrix:\n", cmsvm)
-
 # Plotting
 plt.plot(k_values, mean_scores)
 plt.xlabel('Number of Neighbors (k)')
@@ -961,12 +780,11 @@ plt.ylabel('Mean Cross-Validation Accuracy')
 plt.title('K-NN Performance for Different k Values')
 plt.xticks(k_values)  # Show all k values on the x-axis
 plt.show()
-  
+
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-# Build and Train Model
 knn = KNeighborsClassifier(n_neighbors=4)
+#train the model
 knn.fit(X_train, y_train)
 
 #Predictions and Evaluation
@@ -974,20 +792,16 @@ y_predknn = knn.predict(X_test)
 accuracyknn = accuracy_score(y_test, y_predknn)
 cmknn = confusion_matrix(y_test, y_predknn)
 reportknn = classification_report(y_test, y_predknn)
-
 print(f"Accuracy: {accuracyknn}")
 print(f"Confusion Matrix:\n{cmknn}")
 print(f"Classification Report(k-nn):\n{reportknn}")
 
-####SVM
-
+#SVM
 from sklearn.svm import SVC
 # Create an SVM classifier
 modelsvm = SVC(kernel='linear')
-
 # Train the model
 modelsvm.fit(X_train, y_train)
-
 # Make predictions on the testing set
 y_predsvm = modelsvm.predict(X_test)
 
@@ -1000,47 +814,40 @@ print(f"Classification Report(svm):\n{reportsvm}")
 cmsvm = confusion_matrix(y_test, y_predsvm)
 print("Confusion Matrix:\n", cmsvm)
 
-#Guassian Naive Bayes Classifier
+
+
+#Gaussian Naive Bayes
 from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 nb_model = GaussianNB()
-
 # Train the model
 nb_model.fit(X_train, y_train)
-
 # Make predictions
 y_pred_nb = nb_model.predict(X_test)
 
 # Evaluate the model
 accuracy_nb = accuracy_score(y_test, y_pred_nb)
 print("Accuracy (Naive Bayes):", accuracy_nb)
-
 cm_nb = confusion_matrix(y_test, y_pred_nb)
 print("Confusion Matrix (Naive Bayes):\n", cm_nb)
-
 report_nb = classification_report(y_test, y_pred_nb)
 print("Classification Report (Naive Bayes):\n", report_nb)
 
 #Logistic Regression model
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-
 logreg_model = LogisticRegression()
-
 # Train the model
 logreg_model.fit(X_train, y_train)
-
 # Make predictions
 y_pred_logreg = logreg_model.predict(X_test)
 
 # Evaluate the model
 accuracy_logreg = accuracy_score(y_test, y_pred_logreg)
 print("Accuracy (Logistic Regression):", accuracy_logreg)
-
 cm_logreg = confusion_matrix(y_test, y_pred_logreg)
 print("Confusion Matrix (Logistic Regression):\n", cm_logreg)
-
 report_logreg = classification_report(y_test, y_pred_logreg)
 print("Classification Report (Logistic Regression):\n", report_logreg)
 
@@ -1050,68 +857,56 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import roc_curve, auc, accuracy_score, classification_report, confusion_matrix
   
 dt_model = DecisionTreeClassifier()
-
 # Train the model
 dt_model.fit(X_train, y_train)
-
 # Make predictions
 y_pred_dt = dt_model.predict(X_test)
 
 # Evaluate the model
 accuracy_dt = accuracy_score(y_test, y_pred_dt)
 print("Accuracy (Decision Tree):", accuracy_dt)
-
 cm_dt = confusion_matrix(y_test, y_pred_dt)
 print("Confusion Matrix (Decision Tree):\n", cm_dt)
-
 report_dt = classification_report(y_test, y_pred_dt)
 print("Classification Report (Decision Tree):\n", report_dt)
 
-# Create a Random Forest model
+#Random Forest 
 rf_model = RandomForestClassifier(n_estimators=100, random_state=42)  
 # Train the model
 rf_model.fit(X_train, y_train)
-
 # Make predictions
 y_pred_rf = rf_model.predict(X_test)
 
 # Evaluate the model
 accuracy_rf = accuracy_score(y_test, y_pred_rf)
 print("Accuracy (Random Forest):", accuracy_rf)
-
 cm_rf = confusion_matrix(y_test, y_pred_rf)
 print("Confusion Matrix (Random Forest):\n", cm_rf)
-
 report_rf = classification_report(y_test, y_pred_rf)
 print("Classification Report (Random Forest):\n", report_rf)
 
+#ANN
 import matplotlib.pyplot as plt
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import roc_curve, auc, accuracy_score, classification_report, confusion_matrix
 
-# Create an ANN model
 ann_model = MLPClassifier(hidden_layer_sizes=(100,),  # Adjust hidden layer sizes
                           activation='relu',  # Activation function
                           solver='adam',  # Optimization algorithm
                           max_iter=200,  # Maximum iterations
                           random_state=42)  # For reproducibility
-
 # Train the model
 ann_model.fit(X_train, y_train)
-
 # Make predictions
 y_pred_ann = ann_model.predict(X_test)
 
 # Evaluate the model
 accuracy_ann = accuracy_score(y_test, y_pred_ann)
 print("Accuracy (ANN):", accuracy_ann)
-
 cm_ann = confusion_matrix(y_test, y_pred_ann)
 print("Confusion Matrix (ANN):\n", cm_ann)
-
 report_ann = classification_report(y_test, y_pred_ann)
 print("Classification Report (ANN):\n", report_ann)
-
 
 #Original Data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -1120,43 +915,33 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 import xgboost as xgb
 modelxgb = xgb.XGBClassifier(random_state=42)
 modelxgb.fit(X_train, y_train)
-  
 # Make predictions on the testing set
 y_predxgb = modelxgb.predict(X_test)
 
 # Evaluate the model
 accuracyxgb = accuracy_score(y_test, y_predxgb)
 print("Accuracy:",accuracyxgb)
-
-# Print the confusion matrix
 cmxgb = confusion_matrix(y_test, y_predxgb)
 print("Confusion Matrix:\n", cmxgb)
-
 report_xgb = classification_report(y_test, y_predxgb)
 print("Classification Report (XGB):\n", report_xgb)
 
 #Logistic Regression model
 modellg = LogisticRegression()
-
-# Train the model on the training data
+# Train the model
 modellg.fit(X_train, y_train)
-
 # Make predictions on the testing data
 y_predlg = modellg.predict(X_test)
 
 # Evaluate the model's performance
 accuracylg = accuracy_score(y_test, y_predlg)
 print("Accuracy:", accuracylg)
-
-# Print the confusion matrix
 cmlg = confusion_matrix(y_test, y_predlg)
 print("Confusion Matrix:\n", cmlg)
-
 report_lg = classification_report(y_test, y_predlg)
 print("Classification Report (LR):\n", report_lg)
 
-
-#K-nn
+#k Nearest Neighbors
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.model_selection import cross_val_score
@@ -1183,40 +968,35 @@ plt.title('K-NN Performance for Different k Values')
 plt.xticks(k_values)
 plt.show()
 
-# Build and Train Model
 knn = KNeighborsClassifier(n_neighbors=best_k)
+#Train the model
 knn.fit(X_train, y_train)
-
 #Predictions and Evaluation
 y_predknn = knn.predict(X_test)
+
+#Evaluate the model
 accuracyknn = accuracy_score(y_test, y_predknn)
 cmknn = confusion_matrix(y_test, y_predknn)
 reportknn = classification_report(y_test, y_predknn)
-
 print(f"Accuracy: {accuracyknn}")
 print(f"Confusion Matrix:\n{cmknn}")
 print(f"Classification Report(k-nn):\n{reportknn}")
 
-#SVM classifier
+#SVM
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
 svm = SVC(kernel='linear', random_state=42)
-
 # Train the model
 svm.fit(X_train, y_train)
-
 # Make predictions on the testing set
 y_pred_svm = svm.predict(X_test)
 
 # Evaluate the model
 accuracy_svm = accuracy_score(y_test, y_pred_svm)
 print("Accuracy:", accuracy_svm)
-
-# Print the confusion matrix
 cm_svm = confusion_matrix(y_test, y_pred_svm)
 print("Confusion Matrix:\n", cm_svm)
-
 report_svm = classification_report(y_test, y_pred_svm)
 print("Classification Report (SVM):\n", report_svm)
 
@@ -1225,70 +1005,48 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
 nb_model = GaussianNB()
-
 # Train the model
 nb_model.fit(X_train, y_train)
-
 # Make predictions on the testing set
 y_pred_nb = nb_model.predict(X_test)
 
 # Evaluate the model
 accuracy_nb = accuracy_score(y_test, y_pred_nb)
 print("Accuracy:", accuracy_nb)
-
-# Print the confusion matrix
 cm_nb = confusion_matrix(y_test, y_pred_nb)
 print("Confusion Matrix:\n", cm_nb)
-
-# Print the classification report
 report_nb = classification_report(y_test, y_pred_nb)
 print(report_nb)
 
-#####Decision Tree Classifier
+#Decision Tree Classifier
 from sklearn.tree import DecisionTreeClassifier
 dtmodel = DecisionTreeClassifier(max_depth=5)
-
-
-# Train the model on the training data
+# Train the model 
 dtmodel.fit(X_train, y_train)
-
 # Make predictions on the testing data
 y_preddt = dtmodel.predict(X_test)
 
-# Evaluate the model's performance
+# Evaluate the model
 accuracydt = accuracy_score(y_test, y_preddt)
 print("Accuracy:", accuracydt)
-
-# Print the confusion matrix
 cmdt = confusion_matrix(y_test, y_preddt)
 print("Confusion Matrix:\n", cmdt)
-
-# Print the classification report
 report_dt = classification_report(y_test, y_preddt)
 print(report_dt)
 
-###Random Forest
-
+#Random Forest
 from sklearn.ensemble import RandomForestClassifier
-
-# Create a Random Forest Classifier
 rf = RandomForestClassifier(n_estimators=100, random_state=42)
-
-# Train the model on the training data
+# Train the model
 rf.fit(X_train, y_train)
-
 # Make predictions on the testing data
 y_predrf = rf.predict(X_test)
 
-# Evaluate the model's performance
-
+# Evaluate the model
 accuracyrf = accuracy_score(y_test, y_predrf)
 print("Accuracy:", accuracyrf)
-
-# Print the confusion matrix
 cmrf = confusion_matrix(y_test, y_predrf)
 print("Confusion Matrix:\n", cmrf)
-
 reportrf = classification_report(y_test, y_predrf)
 print(reportrf)
 
@@ -1299,7 +1057,7 @@ from tensorflow.keras.layers import Dense
 import pandas as pd
 
 
-# Convert categorical columns to numerical using one-hot encoding
+#Use one-hot encoding
 X_train = pd.get_dummies(X_train, columns=X_train.select_dtypes(include=['object', 'category']).columns)
 X_test = pd.get_dummies(X_test, columns=X_test.select_dtypes(include=['object', 'category']).columns)
 
@@ -1323,22 +1081,18 @@ modelseq.add(Dense(12,input_dim=X_train.shape[1], activation='relu'))  # Input l
 modelseq.add(Dense(8, activation='relu'))  # Hidden layer
 modelseq.add(Dense(1, activation='sigmoid'))  # Output layer
 
-
 # Compile the model
 modelseq.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-
 # Train the model
 modelseq.fit(X_train, y_train, epochs=10, batch_size=32)
-
-
 # Make predictions on the testing data
 y_predseq = modelseq.predict(X_test)
 y_predseq = (y_predseq > 0.5)  # Convert probabilities to binary predictions
 
-# Evaluate the model's performance
+# Evaluate the model
 accuracyseq = accuracy_score(y_test, y_predseq)
 print("Accuracy:", accuracyseq)
-
-# Print the confusion matrix
 cmseq = confusion_matrix(y_test, y_predseq)
 print("Confusion Matrix:\n", cmseq)
+reportseq = classification_report(y_test, y_predseq)
+print(reportseq)
